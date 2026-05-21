@@ -1,7 +1,7 @@
 """
 post_telegram.py
-Reads today's posts from Google Sheets, generates images via Gemini,
-posts to Telegram channels, updates status, sends admin notification.
+Reads today's posts from Google Sheets, generates images via Gemini (Nano Banana),
+posts to 15 Telegram channels, updates status, sends admin notification.
 """
 
 import os, json, base64, io, time, requests, gspread
@@ -17,60 +17,58 @@ BOT_TOKEN      = os.environ["TELEGRAM_BOT_TOKEN"]
 NOTIFY_CHAT_ID = os.environ.get("TELEGRAM_NOTIFY_CHAT_ID", "")
 SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
 GEMINI_KEY     = os.environ["GEMINI_API_KEY"]
-
 IMAGE_MODEL    = "gemini-2.0-flash-preview-image-generation"
 IMAGE_W, IMAGE_H = 1280, 720
 
-# ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ ACTIVE CHANNELS (add others after configuring them) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 CHANNEL_IDS = {
-    "@esimfrance": "-1002450687148",
-    # "@esimthailand":       "-1001000000002",  # TODO: add real ID
-    # "@esimvietnam":        "-1001000000003",  # TODO: add real ID
-    # "@esimeurope":         "-1001000000004",
-    # "@esimafrica":         "-1001000000005",
-    # "@esimHongKong":       "-1001000000006",
-    # "@esimindonesia":      "-1001000000007",
-    # "@esimrussian":        "-1001000000008",
-    # "@esimphilippine":     "-1001000000009",
-    # "@eSIMmalaysia":       "-1001000000010",
-    # "@CambodiaeSIM":       "-1001000000011",
-    # "@esimamerica":        "-1001000000012",
-    # "@esimsdata_official": "-1001000000013",
-    # "@esimway":            "-1001000000014",
-    # "@esimanonymous":      "-1001000000015",
+    "@esimfrance":         "-1002450687148",
+    "@esimthailand":       "-1001000000002",
+    "@esimvietnam":        "-1001000000003",
+    "@esimeurope":         "-1001000000004",
+    "@esimafrica":         "-1001000000005",
+    "@esimHongKong":       "-1001000000006",
+    "@esimindonesia":      "-1001000000007",
+    "@esimrussian":        "-1001000000008",
+    "@esimphilippine":     "-1001000000009",
+    "@eSIMmalaysia":       "-1001000000010",
+    "@CambodiaeSIM":       "-1001000000011",
+    "@esimamerica":        "-1001000000012",
+    "@esimsdata_official": "-1001000000013",
+    "@esimway":            "-1001000000014",
+    "@esimanonymous":      "-1001000000015",
 }
 
 CHANNEL_META = {
-    "@esimfrance":         {"country":"France",      "city":"Paris",       "flag":"ÃÂ°ÃÂÃÂÃÂ«ÃÂ°ÃÂÃÂÃÂ·","operator":"Orange France"},
-    "@esimthailand":       {"country":"Thailand",    "city":"Bangkok",     "flag":"ÃÂ°ÃÂÃÂÃÂ¹ÃÂ°ÃÂÃÂÃÂ­","operator":"AIS"},
-    "@esimvietnam":        {"country":"Vietnam",     "city":"Hanoi",       "flag":"ÃÂ°ÃÂÃÂÃÂ»ÃÂ°ÃÂÃÂÃÂ³","operator":"MobiFone"},
-    "@esimeurope":         {"country":"Europe",      "city":"EU cities",   "flag":"ÃÂ°ÃÂÃÂÃÂ","operator":"Orange / Vodafone"},
-    "@esimafrica":         {"country":"Africa",      "city":"varies",      "flag":"ÃÂ°ÃÂÃÂÃÂ","operator":"Airtel / MTN"},
-    "@esimHongKong":       {"country":"Hong Kong",   "city":"Hong Kong",   "flag":"ÃÂ°ÃÂÃÂÃÂ­ÃÂ°ÃÂÃÂÃÂ°","operator":"HKT / 3HK"},
-    "@esimindonesia":      {"country":"Indonesia",   "city":"Bali",        "flag":"ÃÂ°ÃÂÃÂÃÂ®ÃÂ°ÃÂÃÂÃÂ©","operator":"Indosat / Telkomsel"},
-    "@esimrussian":        {"country":"Russia",      "city":"Moscow",      "flag":"ÃÂ°ÃÂÃÂÃÂ·ÃÂ°ÃÂÃÂÃÂº","operator":"MegaFon"},
-    "@esimphilippine":     {"country":"Philippines", "city":"Manila",      "flag":"ÃÂ°ÃÂÃÂÃÂµÃÂ°ÃÂÃÂÃÂ­","operator":"Globe Telecom"},
-    "@eSIMmalaysia":       {"country":"Malaysia",    "city":"Kuala Lumpur","flag":"ÃÂ°ÃÂÃÂÃÂ²ÃÂ°ÃÂÃÂÃÂ¾","operator":"Maxis / U Mobile"},
-    "@CambodiaeSIM":       {"country":"Cambodia",    "city":"Phnom Penh",  "flag":"ÃÂ°ÃÂÃÂÃÂ°ÃÂ°ÃÂÃÂÃÂ­","operator":"Metfone"},
-    "@esimamerica":        {"country":"USA",         "city":"New York",    "flag":"ÃÂ°ÃÂÃÂÃÂºÃÂ°ÃÂÃÂÃÂ¸","operator":"AT&T / Verizon"},
-    "@esimsdata_official": {"country":"global",      "city":"travel",      "flag":"ÃÂ°ÃÂÃÂÃÂ","operator":"various"},
-    "@esimway":            {"country":"global",      "city":"travel",      "flag":"ÃÂ°ÃÂÃÂÃÂ","operator":"various"},
-    "@esimanonymous":      {"country":"global",      "city":"anonymous",   "flag":"ÃÂ°ÃÂÃÂÃÂ","operator":"anonymous"},
+    "@esimfrance":         {"country":"France",      "city":"Paris",       "flag":"ð«ð·","operator":"Orange France"},
+    "@esimthailand":       {"country":"Thailand",    "city":"Bangkok",     "flag":"ð¹ð­","operator":"AIS"},
+    "@esimvietnam":        {"country":"Vietnam",     "city":"Hanoi",       "flag":"ð»ð³","operator":"MobiFone"},
+    "@esimeurope":         {"country":"Europe",      "city":"EU cities",   "flag":"ð","operator":"Orange / Vodafone"},
+    "@esimafrica":         {"country":"Africa",      "city":"varies",      "flag":"ð","operator":"Airtel / MTN"},
+    "@esimHongKong":       {"country":"Hong Kong",   "city":"Hong Kong",   "flag":"ð­ð°","operator":"HKT / 3HK"},
+    "@esimindonesia":      {"country":"Indonesia",   "city":"Bali",        "flag":"ð®ð©","operator":"Indosat / Telkomsel"},
+    "@esimrussian":        {"country":"Russia",      "city":"Moscow",      "flag":"ð·ðº","operator":"MegaFon"},
+    "@esimphilippine":     {"country":"Philippines", "city":"Manila",      "flag":"ðµð­","operator":"Globe Telecom"},
+    "@eSIMmalaysia":       {"country":"Malaysia",    "city":"Kuala Lumpur","flag":"ð²ð¾","operator":"Maxis / U Mobile"},
+    "@CambodiaeSIM":       {"country":"Cambodia",    "city":"Phnom Penh",  "flag":"ð°ð­","operator":"Metfone"},
+    "@esimamerica":        {"country":"USA",         "city":"New York",    "flag":"ðºð¸","operator":"AT&T / Verizon"},
+    "@esimsdata_official": {"country":"global",      "city":"travel",      "flag":"ð","operator":"various"},
+    "@esimway":            {"country":"global",      "city":"travel",      "flag":"ð","operator":"various"},
+    "@esimanonymous":      {"country":"global",      "city":"anonymous",   "flag":"ð","operator":"anonymous"},
 }
 
 RUBRIC_MOOD = {
-    "ÃÂ°ÃÂÃÂÃÂ¶ Plan spotlight":   "energetic, modern, travel-ready ÃÂ¢ÃÂÃÂ smartphone with signal bars, city skyline",
-    "ÃÂ°ÃÂÃÂÃÂ Travel guide":     "adventurous, warm, discovery ÃÂ¢ÃÂÃÂ traveler with phone against iconic landmark",
-    "ÃÂ°ÃÂÃÂÃÂ Privacy":          "dark, mysterious, secure ÃÂ¢ÃÂÃÂ glowing shield, anonymous figure, deep shadows",
-    "ÃÂ°ÃÂÃÂÃÂ° News":             "dynamic, editorial, tech ÃÂ¢ÃÂÃÂ abstract network signals, urban nightscape",
-    "ÃÂ°ÃÂÃÂÃÂ Voice + Data":     "connected, local, premium ÃÂ¢ÃÂÃÂ smartphone close-up showing local number",
-    "ÃÂ°ÃÂÃÂÃÂ Seasonal":         "vibrant, joyful, travel lifestyle ÃÂ¢ÃÂÃÂ airport departure or scenic destination",
-    "ÃÂ°ÃÂÃÂÃÂ± App feature":      "clean, minimal, tech UI ÃÂ¢ÃÂÃÂ floating smartphone with app interface glow",
-    "ÃÂ°ÃÂÃÂÃÂ Islamic seasonal": "warm, golden, respectful ÃÂ¢ÃÂÃÂ crescent moon, mosque silhouette, soft light",
+    "ð¶ Plan spotlight":   "energetic, modern, travel-ready â smartphone with signal bars, city skyline",
+    "ð Travel guide":     "adventurous, warm, discovery â traveler with phone against iconic landmark",
+    "ð Privacy":          "dark, mysterious, secure â glowing shield, anonymous figure, deep shadows",
+    "ð° News":             "dynamic, editorial, tech â abstract network signals, urban nightscape",
+    "ð Voice + Data":     "connected, local, premium â smartphone close-up showing local number",
+    "ð Seasonal":         "vibrant, joyful, travel lifestyle â airport departure or scenic destination",
+    "ð± App feature":      "clean, minimal, tech UI â floating smartphone with app interface glow",
+    "ð Islamic seasonal": "warm, golden, respectful â crescent moon, mosque silhouette, soft light",
 }
 
 def build_image_prompt(channel, rubric, post_text, img_description):
-    meta = CHANNEL_META.get(channel, {"country":"global","city":"travel","flag":"ÃÂ°ÃÂÃÂÃÂ","operator":"various"})
+    meta = CHANNEL_META.get(channel, {"country":"global","city":"travel","flag":"ð","operator":"various"})
     country  = meta["country"]
     city     = meta["city"]
     flag     = meta["flag"]
@@ -80,7 +78,7 @@ def build_image_prompt(channel, rubric, post_text, img_description):
                      if l.strip() and not l.startswith("http") and len(l.strip()) > 10]
     context = context_lines[0][:80] if context_lines else ""
     logo_hint = ""
-    if rubric in ("ÃÂ°ÃÂÃÂÃÂ¶ Plan spotlight", "ÃÂ°ÃÂÃÂÃÂ Voice + Data") and operator not in ("various", "anonymous"):
+    if rubric in ("ð¶ Plan spotlight", "ð Voice + Data") and operator not in ("various", "anonymous"):
         logo_hint = f"The {operator} operator logo subtly visible on the smartphone screen."
     return f"""Cinematic dark tech aesthetic. Deep navy and dark purple tones with subtle blue-purple gradient lighting. Premium, minimalist, editorial photography style. eSIM digital connectivity and travel theme.
 
@@ -95,7 +93,7 @@ No text overlays, no QR codes, no watermarks. 16:9 landscape format, 1280x720.""
 def generate_image(channel, rubric, post_text, img_description):
     client = genai.Client(api_key=GEMINI_KEY)
     prompt = build_image_prompt(channel, rubric, post_text, img_description)
-    print(f"    Gemini prompt preview: {prompt[:100]}...")
+    print(f"    Gemini prompt: {prompt[:80]}...")
     try:
         response = client.models.generate_content(
             model=IMAGE_MODEL,
@@ -124,39 +122,13 @@ def get_sheets_client():
     creds = Credentials.from_service_account_info(creds_json, scopes=scopes)
     return gspread.authorize(creds)
 
-def _date_match(cell_val, today):
-    """Match date regardless of format: '21.05.2026', date object, or Google serial number."""
-    from datetime import date as _date
-    s = str(cell_val).strip()
-    if s == today:
-        return True
-    # Try parsing common formats
-    for fmt in ("%d.%m.%Y", "%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y"):
-        try:
-            from datetime import datetime
-            d = datetime.strptime(s, fmt)
-            if d.strftime("%d.%m.%Y") == today:
-                return True
-        except:
-            pass
-    # Google Sheets serial number (days since 1899-12-30)
-    try:
-        n = float(s)
-        from datetime import timedelta, date as _date2
-        d = _date2(1899, 12, 30) + timedelta(days=int(n))
-        if d.strftime("%d.%m.%Y") == today:
-            return True
-    except:
-        pass
-    return False
-
 def get_today_posts(sheets, sheet_name):
     try:
         ws = sheets.open_by_key(SPREADSHEET_ID).worksheet(sheet_name)
         rows = ws.get_all_records()
         return [(i+2, r) for i, r in enumerate(rows)
-                if str(r.get("ÃÂÃÂÃÂÃÂ°ÃÂÃÂÃÂÃÂ° ÃÂÃÂ¿ÃÂÃÂÃÂÃÂ±ÃÂÃÂ»ÃÂÃÂ¸ÃÂÃÂºÃÂÃÂ°ÃÂÃÂÃÂÃÂ¸ÃÂÃÂ¸","")).strip() == TODAY
-                and "Draft" in str(r.get("ÃÂÃÂ¡ÃÂÃÂÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂ",""))]
+                if str(r.get("ÐÐ°ÑÐ° Ð¿ÑÐ±Ð»Ð¸ÐºÐ°ÑÐ¸Ð¸","")).strip() == TODAY
+                and "Draft" in str(r.get("Ð¡ÑÐ°ÑÑÑ",""))]
     except Exception as e:
         print(f"  Sheet error [{sheet_name}]: {e}")
         return []
@@ -164,7 +136,7 @@ def get_today_posts(sheets, sheet_name):
 def update_status(sheets, sheet_name, row_index):
     try:
         ws = sheets.open_by_key(SPREADSHEET_ID).worksheet(sheet_name)
-        ws.update_cell(row_index, 7, "ÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ Published")
+        ws.update_cell(row_index, 7, "âï¸ Published")
         ws.update_cell(row_index, 8, TODAY)
     except Exception as e:
         print(f"  Status update error: {e}")
@@ -203,10 +175,10 @@ def main():
             print(f"  {channel}: no post today")
             continue
         row_idx, row = posts[0]
-        rubric    = str(row.get("ÃÂÃÂ ÃÂÃÂÃÂÃÂ±ÃÂÃÂÃÂÃÂ¸ÃÂÃÂºÃÂÃÂ°","")).strip()
-        post_text = str(row.get("ÃÂÃÂ¢ÃÂÃÂµÃÂÃÂºÃÂÃÂÃÂÃÂ ÃÂÃÂ¿ÃÂÃÂ¾ÃÂÃÂÃÂÃÂÃÂÃÂ° (EN)","")).strip()
-        link      = str(row.get("ÃÂÃÂ¡ÃÂÃÂÃÂÃÂÃÂÃÂ»ÃÂÃÂºÃÂÃÂ°","")).strip()
-        img_desc  = str(row.get("ÃÂÃÂÃÂÃÂ¿ÃÂÃÂ¸ÃÂÃÂÃÂÃÂ°ÃÂÃÂ½ÃÂÃÂ¸ÃÂÃÂµ ÃÂÃÂºÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂ¸ÃÂÃÂ½ÃÂÃÂºÃÂÃÂ¸","travel landscape")).strip()
+        rubric    = str(row.get("Ð ÑÐ±ÑÐ¸ÐºÐ°","")).strip()
+        post_text = str(row.get("Ð¢ÐµÐºÑÑ Ð¿Ð¾ÑÑÐ° (EN)","")).strip()
+        link      = str(row.get("Ð¡ÑÑÐ»ÐºÐ°","")).strip()
+        img_desc  = str(row.get("ÐÐ¿Ð¸ÑÐ°Ð½Ð¸Ðµ ÐºÐ°ÑÑÐ¸Ð½ÐºÐ¸","travel landscape")).strip()
         print(f"\n  {channel} | {rubric}")
         caption = f"{post_text}\n\n{link}" if link else post_text
         caption = caption[:1024]
@@ -215,22 +187,22 @@ def main():
             result = tg_send_photo(channel_id, img_buf, caption) if img_buf else tg_send_message(channel_id, caption)
             if result.get("ok"):
                 update_status(sheets, channel, row_idx)
-                sent.append(f"ÃÂ¢ÃÂÃÂ {channel} ÃÂ¢ÃÂÃÂ {rubric}")
-                print(f"    Posted ÃÂ¢ÃÂÃÂ")
+                sent.append(f"â {channel} â {rubric}")
+                print(f"    Posted â")
             else:
                 err = result.get("description","unknown")
-                errors.append(f"ÃÂ¢ÃÂÃÂ {channel}: {err}")
+                errors.append(f"â {channel}: {err}")
                 print(f"    Error: {err}")
         except Exception as e:
-            errors.append(f"ÃÂ¢ÃÂÃÂ {channel}: {e}")
+            errors.append(f"â {channel}: {e}")
             print(f"    Exception: {e}")
         time.sleep(2)
 
-    report = (f"ÃÂ°ÃÂÃÂÃÂ <b>eSIM Telegram report</b>\n"
-              f"ÃÂ°ÃÂÃÂÃÂ {TODAY} ({DAY.capitalize()})\n"
-              f"ÃÂ¢ÃÂÃÂ Sent: {len(sent)} / {len(sent)+len(errors)}\n")
+    report = (f"ð <b>eSIM Telegram report</b>\n"
+              f"ð {TODAY} ({DAY.capitalize()})\n"
+              f"â Sent: {len(sent)} / {len(sent)+len(errors)}\n")
     if sent:   report += "\n" + "\n".join(sent)
-    if errors: report += "\n\nÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ <b>Errors:</b>\n" + "\n".join(errors)
+    if errors: report += "\n\nâ ï¸ <b>Errors:</b>\n" + "\n".join(errors)
     notify_admin(report)
     print(f"\n{'='*50}")
     print(f"  Done: {len(sent)} sent, {len(errors)} errors")
