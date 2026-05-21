@@ -18,7 +18,7 @@ NOTIFY_CHAT_ID = os.environ.get("TELEGRAM_NOTIFY_CHAT_ID", "")
 SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
 GEMINI_KEY     = os.environ["GEMINI_API_KEY"]
 
-IMAGE_MODEL    = "gemini-2.5-flash-image"
+IMAGE_MODEL    = "gemini-2.0-flash-preview-image-generation"
 IMAGE_W, IMAGE_H = 1280, 720
 
 # ââ ACTIVE CHANNELS (add others after configuring them) ââââââââââââââââââââââ
