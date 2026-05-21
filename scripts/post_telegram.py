@@ -1,7 +1,7 @@
 """
 post_telegram.py
-Reads today's posts from Google Sheets, generates images via Gemini (Nano Banana),
-posts to 15 Telegram channels, updates status, sends admin notification.
+Reads today's posts from Google Sheets, generates images via Gemini,
+posts to Telegram channels, updates status, sends admin notification.
 """
 
 import os, json, base64, io, time, requests, gspread
@@ -17,25 +17,27 @@ BOT_TOKEN      = os.environ["TELEGRAM_BOT_TOKEN"]
 NOTIFY_CHAT_ID = os.environ.get("TELEGRAM_NOTIFY_CHAT_ID", "")
 SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
 GEMINI_KEY     = os.environ["GEMINI_API_KEY"]
-IMAGE_MODEL    = "gemini-2.5-flash-image"
+
+IMAGE_MODEL    = "gemini-2.0-flash-exp-image-generation"
 IMAGE_W, IMAGE_H = 1280, 720
 
+# ── ACTIVE CHANNELS (add others after configuring them) ──────────────────────
 CHANNEL_IDS = {
-    "@esimfrance":         "-1002450687148",
-    "@esimthailand":       "-1001000000002",
-    "@esimvietnam":        "-1001000000003",
-    "@esimeurope":         "-1001000000004",
-    "@esimafrica":         "-1001000000005",
-    "@esimHongKong":       "-1001000000006",
-    "@esimindonesia":      "-1001000000007",
-    "@esimrussian":        "-1001000000008",
-    "@esimphilippine":     "-1001000000009",
-    "@eSIMmalaysia":       "-1001000000010",
-    "@CambodiaeSIM":       "-1001000000011",
-    "@esimamerica":        "-1001000000012",
-    "@esimsdata_official": "-1001000000013",
-    "@esimway":            "-1001000000014",
-    "@esimanonymous":      "-1001000000015",
+    "@esimfrance": "-1002450687148",
+    # "@esimthailand":       "-1001000000002",  # TODO: add real ID
+    # "@esimvietnam":        "-1001000000003",  # TODO: add real ID
+    # "@esimeurope":         "-1001000000004",
+    # "@esimafrica":         "-1001000000005",
+    # "@esimHongKong":       "-1001000000006",
+    # "@esimindonesia":      "-1001000000007",
+    # "@esimrussian":        "-1001000000008",
+    # "@esimphilippine":     "-1001000000009",
+    # "@eSIMmalaysia":       "-1001000000010",
+    # "@CambodiaeSIM":       "-1001000000011",
+    # "@esimamerica":        "-1001000000012",
+    # "@esimsdata_official": "-1001000000013",
+    # "@esimway":            "-1001000000014",
+    # "@esimanonymous":      "-1001000000015",
 }
 
 CHANNEL_META = {
@@ -93,7 +95,7 @@ No text overlays, no QR codes, no watermarks. 16:9 landscape format, 1280x720.""
 def generate_image(channel, rubric, post_text, img_description):
     client = genai.Client(api_key=GEMINI_KEY)
     prompt = build_image_prompt(channel, rubric, post_text, img_description)
-    print(f"    Gemini prompt: {prompt[:80]}...")
+    print(f"    Gemini prompt preview: {prompt[:100]}...")
     try:
         response = client.models.generate_content(
             model=IMAGE_MODEL,
