@@ -18,7 +18,7 @@ NOTIFY_CHAT_ID = os.environ.get("TELEGRAM_NOTIFY_CHAT_ID", "")
 SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
 GEMINI_KEY     = os.environ["GEMINI_API_KEY"]
 
-IMAGE_MODEL      = "imagen-3.0-generate-002"
+IMAGE_MODEL      = "gemini-2.0-flash-exp"
 IMAGE_W, IMAGE_H = 1280, 720
 
 CHANNEL_IDS = {
@@ -83,35 +83,31 @@ def build_prompt(channel, rubric, post_text, img_desc):
 
 
 def generate_image(channel, rubric, post_text, img_desc):
-    import base64 as _b64
+    client = genai.Client(api_key=GEMINI_KEY)
     prompt = build_prompt(channel, rubric, post_text, img_desc)
-    print(f"    Imagen: {prompt[:80]}...")
+    print(f"    Gemini image: {prompt[:80]}...")
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{IMAGE_MODEL}:predict?key={GEMINI_KEY}"
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "instances": [{"prompt": prompt}],
-            "parameters": {"sampleCount": 1, "aspectRatio": "16:9"}
-        }
-        resp = requests.post(url, headers=headers, json=payload, timeout=60)
-        print(f"    Status: {resp.status_code}")
-        print(f"    Response: {resp.text[:500]}")
-        if resp.status_code == 200:
-            data = resp.json()
-            if "predictions" in data and data["predictions"]:
-                img_b64 = data["predictions"][0].get("bytesBase64Encoded", "")
-                if img_b64:
-                    img = Image.open(io.BytesIO(_b64.b64decode(img_b64))).convert("RGB")
-                    if img.size != (IMAGE_W, IMAGE_H):
-                        img = img.resize((IMAGE_W, IMAGE_H), Image.LANCZOS)
-                    buf = io.BytesIO()
-                    img.save(buf, format="JPEG", quality=90)
-                    buf.seek(0)
-                    print(f"    Image OK {img.size}")
-                    return buf
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-exp",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE", "TEXT"]
+            )
+        )
+        for part in response.candidates[0].content.parts:
+            if hasattr(part, "inline_data") and part.inline_data:
+                img = Image.open(io.BytesIO(part.inline_data.data)).convert("RGB")
+                if img.size != (IMAGE_W, IMAGE_H):
+                    img = img.resize((IMAGE_W, IMAGE_H), Image.LANCZOS)
+                buf = io.BytesIO()
+                img.save(buf, format="JPEG", quality=90)
+                buf.seek(0)
+                print(f"    Image OK {img.size}")
+                return buf
+        print("    No image in response")
         return None
     except Exception as e:
-        print(f"    Imagen error: {e}")
+        print(f"    Gemini error: {e}")
         return None
 
 def get_sheets_client():
