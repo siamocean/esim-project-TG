@@ -87,7 +87,7 @@ def generate_image(channel, rubric, post_text, img_desc):
     prompt = build_prompt(channel, rubric, post_text, img_desc)
     print(f"    Imagen: {prompt[:80]}...")
     try:
-        url = f"https://generativelanguage.googleapis.com/v1/models/{IMAGE_MODEL}:predict?key={GEMINI_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{IMAGE_MODEL}:predict?key={GEMINI_KEY}"
         payload = {
             "instances": [{"prompt": prompt}],
             "parameters": {"sampleCount": 1, "aspectRatio": "16:9"}
