@@ -83,37 +83,34 @@ def build_prompt(channel, rubric, post_text, img_desc):
 
 
 def generate_image(channel, rubric, post_text, img_desc):
+    import base64 as _b64
     prompt = build_prompt(channel, rubric, post_text, img_desc)
     print(f"    Imagen: {prompt[:80]}...")
     try:
-        client_v1 = genai.Client(
-            api_key=GEMINI_KEY,
-            http_options={"api_version": "v1"}
-        )
-        response = client_v1.models.generate_images(
-            model=IMAGE_MODEL,
-            prompt=prompt,
-            config=types.GenerateImagesConfig(
-                number_of_images=1,
-                aspect_ratio="16:9",
-            )
-        )
-        if response.generated_images:
-            img_bytes = response.generated_images[0].image.image_bytes
-            img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
-            if img.size != (IMAGE_W, IMAGE_H):
-                img = img.resize((IMAGE_W, IMAGE_H), Image.LANCZOS)
-            buf = io.BytesIO()
-            img.save(buf, format="JPEG", quality=90)
-            buf.seek(0)
-            print(f"    Image OK {img.size}")
-            return buf
-        print("    No image in response")
+        url = f"https://generativelanguage.googleapis.com/v1/models/{IMAGE_MODEL}:predict?key={GEMINI_KEY}"
+        payload = {
+            "instances": [{"prompt": prompt}],
+            "parameters": {"sampleCount": 1, "aspectRatio": "16:9"}
+        }
+        resp = requests.post(url, json=payload, timeout=60)
+        data = resp.json()
+        print(f"    Imagen response status: {resp.status_code}")
+        if resp.status_code == 200 and "predictions" in data:
+            img_b64 = data["predictions"][0].get("bytesBase64Encoded", "")
+            if img_b64:
+                img = Image.open(io.BytesIO(_b64.b64decode(img_b64))).convert("RGB")
+                if img.size != (IMAGE_W, IMAGE_H):
+                    img = img.resize((IMAGE_W, IMAGE_H), Image.LANCZOS)
+                buf = io.BytesIO()
+                img.save(buf, format="JPEG", quality=90)
+                buf.seek(0)
+                print(f"    Image OK {img.size}")
+                return buf
+        print(f"    No image. Response: {str(data)[:300]}")
         return None
     except Exception as e:
         print(f"    Imagen error: {e}")
         return None
-
 
 def get_sheets_client():
     creds_json = json.loads(base64.b64decode(os.environ["GOOGLE_CREDENTIALS"]))
