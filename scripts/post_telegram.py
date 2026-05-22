@@ -22,7 +22,11 @@ IMAGE_MODEL      = "gemini-2.5-flash-image"
 IMAGE_W, IMAGE_H = 1280, 720
 
 CHANNEL_IDS = {
-    "@esimfrance": "-1002450687148",
+    "@esimfrance":   "-1002450687148",
+    "@esimthailand": "-1002194034807",
+    "@esimvietnam":  "-1002224251795",
+    "@esimeurope":   "-1002286006244",
+    "@esimafrica":   "-1002348896395",
 }
 
 CHANNEL_META = {
