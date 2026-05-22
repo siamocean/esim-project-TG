@@ -18,7 +18,7 @@ NOTIFY_CHAT_ID = os.environ.get("TELEGRAM_NOTIFY_CHAT_ID", "")
 SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
 GEMINI_KEY     = os.environ["GEMINI_API_KEY"]
 
-IMAGE_MODEL      = "gemini-2.5-flash-image"
+IMAGE_MODEL      = "imagen-4.0-fast-generate-001"
 IMAGE_W, IMAGE_H = 1280, 720
 
 CHANNEL_IDS = {
@@ -85,27 +85,30 @@ def build_prompt(channel, rubric, post_text, img_desc):
 def generate_image(channel, rubric, post_text, img_desc):
     client = genai.Client(api_key=GEMINI_KEY)
     prompt = build_prompt(channel, rubric, post_text, img_desc)
-    print(f"    Gemini: {prompt[:80]}...")
+    print(f"    Imagen: {prompt[:80]}...")
     try:
-        response = client.models.generate_content(
+        response = client.models.generate_images(
             model=IMAGE_MODEL,
-            contents=prompt,
-            config=types.GenerateContentConfig(response_modalities=["IMAGE", "TEXT"])
+            prompt=prompt,
+            config=types.GenerateImagesConfig(
+                number_of_images=1,
+                aspect_ratio="16:9",
+            )
         )
-        for part in response.parts:
-            if hasattr(part, "inline_data") and part.inline_data:
-                img = Image.open(io.BytesIO(part.inline_data.data)).convert("RGB")
-                if img.size != (IMAGE_W, IMAGE_H):
-                    img = img.resize((IMAGE_W, IMAGE_H), Image.LANCZOS)
-                buf = io.BytesIO()
-                img.save(buf, format="JPEG", quality=90)
-                buf.seek(0)
-                print(f"    Image OK {img.size}")
-                return buf
+        if response.generated_images:
+            img_bytes = response.generated_images[0].image.image_bytes
+            img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+            if img.size != (IMAGE_W, IMAGE_H):
+                img = img.resize((IMAGE_W, IMAGE_H), Image.LANCZOS)
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=90)
+            buf.seek(0)
+            print(f"    Image OK {img.size}")
+            return buf
         print("    No image in response")
         return None
     except Exception as e:
-        print(f"    Gemini error: {e}")
+        print(f"    Imagen error: {e}")
         return None
 
 
