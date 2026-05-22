@@ -22,21 +22,7 @@ IMAGE_MODEL      = "gemini-2.5-flash-image"
 IMAGE_W, IMAGE_H = 1280, 720
 
 CHANNEL_IDS = {
-    "@esimfrance":         "-1002450687148",
-    "@esimthailand":       "-1002194034807",
-    "@esimvietnam":        "-1002224251795",
-    "@esimeurope":         "-1002286006244",
-    "@esimafrica":         "-1002348896395",
-    "@esimHongKong":       "-1002258444792",
-    "@esimindonesia":      "-1002407600794",
-    "@esimrussian":        "-1002254473506",
-    "@esimphilippine":     "-1002275103508",
-    "@eSIMmalaysia":       "-1002429758669",
-    "@CambodiaeSIM":       "-1002351647232",
-    "@esimamerica":        "-1002480277739",
-    "@esimsdata_official": "-1003710694261",
-    "@esimway":            "-1002249121447",
-    "@esimanonymous":      "-1002315349916",
+    "@esimfrance":   "-1002450687148",
 }
 
 CHANNEL_META = {
