@@ -88,25 +88,27 @@ def generate_image(channel, rubric, post_text, img_desc):
     print(f"    Imagen: {prompt[:80]}...")
     try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{IMAGE_MODEL}:predict?key={GEMINI_KEY}"
+        headers = {"Content-Type": "application/json"}
         payload = {
             "instances": [{"prompt": prompt}],
             "parameters": {"sampleCount": 1, "aspectRatio": "16:9"}
         }
-        resp = requests.post(url, json=payload, timeout=60)
-        data = resp.json()
-        print(f"    Imagen response status: {resp.status_code}")
-        if resp.status_code == 200 and "predictions" in data:
-            img_b64 = data["predictions"][0].get("bytesBase64Encoded", "")
-            if img_b64:
-                img = Image.open(io.BytesIO(_b64.b64decode(img_b64))).convert("RGB")
-                if img.size != (IMAGE_W, IMAGE_H):
-                    img = img.resize((IMAGE_W, IMAGE_H), Image.LANCZOS)
-                buf = io.BytesIO()
-                img.save(buf, format="JPEG", quality=90)
-                buf.seek(0)
-                print(f"    Image OK {img.size}")
-                return buf
-        print(f"    No image. Response: {str(data)[:300]}")
+        resp = requests.post(url, headers=headers, json=payload, timeout=60)
+        print(f"    Status: {resp.status_code}")
+        print(f"    Response: {resp.text[:500]}")
+        if resp.status_code == 200:
+            data = resp.json()
+            if "predictions" in data and data["predictions"]:
+                img_b64 = data["predictions"][0].get("bytesBase64Encoded", "")
+                if img_b64:
+                    img = Image.open(io.BytesIO(_b64.b64decode(img_b64))).convert("RGB")
+                    if img.size != (IMAGE_W, IMAGE_H):
+                        img = img.resize((IMAGE_W, IMAGE_H), Image.LANCZOS)
+                    buf = io.BytesIO()
+                    img.save(buf, format="JPEG", quality=90)
+                    buf.seek(0)
+                    print(f"    Image OK {img.size}")
+                    return buf
         return None
     except Exception as e:
         print(f"    Imagen error: {e}")
