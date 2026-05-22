@@ -246,7 +246,7 @@ def main():
         link      = str(row.get("link", "")).strip()
         img_desc  = str(row.get("img_desc", "travel landscape eSIM")).strip()
         print(f"\n  {channel} | {rubric}")
-        caption = f"{post_text}\n\n{link}" if link else post_text
+        caption = f"{post_text}\n\n{link}" if link and link not in post_text else post_text
         caption = caption[:1024]
         img_buf = generate_image(channel, rubric, post_text, img_desc)
         try:
