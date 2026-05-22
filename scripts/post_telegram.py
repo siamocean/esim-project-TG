@@ -112,7 +112,8 @@ def generate_image(channel, rubric, post_text, img_desc):
             if hasattr(part, "inline_data") and part.inline_data:
                 img = Image.open(io.BytesIO(part.inline_data.data)).convert("RGB")
                 if img.size != (IMAGE_W, IMAGE_H):
-                    img = img.resize((IMAGE_W, IMAGE_H), Image.LANCZOS)
+                    from PIL import ImageOps
+                    img = ImageOps.fit(img, (IMAGE_W, IMAGE_H), Image.LANCZOS)
                 buf = io.BytesIO()
                 img.save(buf, format="JPEG", quality=90)
                 buf.seek(0)
