@@ -92,7 +92,7 @@ def build_prompt(channel, rubric, post_text, img_desc):
         f"Post context: {context}\n"
         f"Visual: {img_desc}\n"
         f"{logo}\n\n"
-        f"No text overlays, no QR codes, no watermarks. 16:9 landscape 1280x720."
+        f"16:9 wide landscape format, 1280x720 pixels. No text overlays, no QR codes, no watermarks."
     ).strip()
 
 
@@ -111,9 +111,9 @@ def generate_image(channel, rubric, post_text, img_desc):
         for part in response.candidates[0].content.parts:
             if hasattr(part, "inline_data") and part.inline_data:
                 img = Image.open(io.BytesIO(part.inline_data.data)).convert("RGB")
-                if img.size != (IMAGE_W, IMAGE_H):
-                    from PIL import ImageOps
-                    img = ImageOps.fit(img, (IMAGE_W, IMAGE_H), Image.LANCZOS)
+                # Resize preserving aspect ratio then center-crop to 16:9
+                from PIL import ImageOps
+                img = ImageOps.fit(img, (IMAGE_W, IMAGE_H), Image.LANCZOS, centering=(0.5, 0.5))
                 buf = io.BytesIO()
                 img.save(buf, format="JPEG", quality=90)
                 buf.seek(0)
