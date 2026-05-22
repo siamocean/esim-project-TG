@@ -52,7 +52,7 @@ CHANNEL_META = {
     "@eSIMmalaysia":       {"country": "Malaysia",    "city": "KL",         "operator": "Maxis"},
     "@CambodiaeSIM":       {"country": "Cambodia",    "city": "Phnom Penh", "operator": "Metfone"},
     "@esimamerica":        {"country": "USA",         "city": "New York",   "operator": "AT&T"},
-    "@esimsdata_official": {"country": "global",      "city": "travel",     "operator": "various"},
+    "@esimsdata_official": {"country": "global",      "city": "travel",     "operator": "eSIMsData", "brand_colors": "#582c4f, white #f8fbff, gradient #b86aa8 to #552a4c"},
     "@esimway":            {"country": "global",      "city": "travel",     "operator": "various"},
     "@esimanonymous":      {"country": "global",      "city": "anonymous",  "operator": "anonymous"},
 }
@@ -68,6 +68,25 @@ RUBRIC_MOOD = {
     "Islamic":         "warm, golden, respectful -- crescent moon, mosque silhouette, soft light",
 }
 
+
+def build_esimdata_prompt(rubric, post_text, img_desc):
+    """Special prompt for @esimsdata_official with brand colors and lifestyle photography."""
+    lines = [l.strip() for l in post_text.split("\n")
+             if l.strip() and not l.startswith("http") and len(l.strip()) > 10]
+    context = lines[0][:80] if lines else ""
+    return (
+        f"Lifestyle travel photography, warm and vibrant. Real people traveling, "
+        f"authentic moments: traveler at airport, tourist exploring city, person using smartphone outdoors, "
+        f"couple at cafe with phone, backpacker in nature. No robots, no AI figures, no tech UI, no devices floating. "
+        f"Real human emotion and travel energy.\n\n"
+        f"Color palette: deep plum #582c4f as dominant background tone, "
+        f"soft white #f8fbff and #EEEEEE as accent highlights, "
+        f"gradient overlay from #b86aa8 to #552a4c (left to right, subtle, 30% opacity). "
+        f"Cinematic warm lighting, premium editorial style.\n\n"
+        f"Post context: {context}\n"
+        f"Visual direction: {img_desc}\n\n"
+        f"16:9 wide landscape format, 1280x720px. No text overlays, no QR codes, no watermarks."
+    ).strip()
 
 def build_prompt(channel, rubric, post_text, img_desc):
     meta     = CHANNEL_META.get(channel, {"country": "global", "city": "travel", "operator": "various"})
@@ -98,7 +117,10 @@ def build_prompt(channel, rubric, post_text, img_desc):
 
 def generate_image(channel, rubric, post_text, img_desc):
     client = genai.Client(api_key=GEMINI_KEY)
-    prompt = build_prompt(channel, rubric, post_text, img_desc)
+    if channel == "@esimsdata_official":
+        prompt = build_esimdata_prompt(rubric, post_text, img_desc)
+    else:
+        prompt = build_prompt(channel, rubric, post_text, img_desc)
     print(f"    Gemini image: {prompt[:80]}...")
     try:
         response = client.models.generate_content(
