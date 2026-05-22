@@ -37,8 +37,8 @@ CHANNEL_IDS = {
     "@esimsdata_official": "-1003710694261",
     "@esimway":            "-1002249121447",
     "@esimanonymous":      "-1002315349916",
-    # "@esim_5g_internet":    "",  # TODO: pending content & style
-    # "@esim_united_kingdom": "",  # TODO: pending content & style
+    # "@esim_5g_internet":    "-1003624254307",  # TODO: pending content & style
+    # "@esim_united_kingdom": "-1003704526342",  # TODO: pending content & style
 }
 
 CHANNEL_META = {
