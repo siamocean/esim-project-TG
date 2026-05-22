@@ -18,7 +18,7 @@ NOTIFY_CHAT_ID = os.environ.get("TELEGRAM_NOTIFY_CHAT_ID", "")
 SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
 GEMINI_KEY     = os.environ["GEMINI_API_KEY"]
 
-IMAGE_MODEL      = "gemini-2.0-flash-exp-image-generation"
+IMAGE_MODEL      = "gemini-2.5-flash-image"
 IMAGE_W, IMAGE_H = 1280, 720
 
 CHANNEL_IDS = {
@@ -88,13 +88,13 @@ def generate_image(channel, rubric, post_text, img_desc):
     print(f"    Gemini image: {prompt[:80]}...")
     try:
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp-image-generation",
+            model="gemini-2.5-flash-image",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_modalities=["IMAGE", "TEXT"]
             )
         )
-        for part in response.parts:
+        for part in response.candidates[0].content.parts:
             if hasattr(part, "inline_data") and part.inline_data:
                 img = Image.open(io.BytesIO(part.inline_data.data)).convert("RGB")
                 if img.size != (IMAGE_W, IMAGE_H):
