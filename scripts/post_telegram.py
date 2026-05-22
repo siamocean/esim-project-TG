@@ -19,7 +19,7 @@ SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
 GEMINI_KEY     = os.environ["GEMINI_API_KEY"]
 
 IMAGE_MODEL      = "gemini-2.5-flash-image"
-IMAGE_W, IMAGE_H = 1280, 720
+IMAGE_W, IMAGE_H = 1280, 670
 
 CHANNEL_IDS = {
     "@esimfrance":         "-1002450687148",
@@ -85,7 +85,7 @@ def build_esimdata_prompt(rubric, post_text, img_desc):
         f"Cinematic warm lighting, premium editorial style.\n\n"
         f"Post context: {context}\n"
         f"Visual direction: {img_desc}\n\n"
-        f"16:9 wide landscape format, 1280x720px. No text overlays, no QR codes, no watermarks."
+        f"Horizontal landscape format 1.91:1 ratio (1280x670px). Fill the entire frame edge to edge, no empty space, no borders. No text overlays, no QR codes, no watermarks."
     ).strip()
 
 def build_esimway_prompt(rubric, post_text, img_desc):
@@ -154,9 +154,9 @@ def generate_image(channel, rubric, post_text, img_desc):
         for part in response.candidates[0].content.parts:
             if hasattr(part, "inline_data") and part.inline_data:
                 img = Image.open(io.BytesIO(part.inline_data.data)).convert("RGB")
-                # Resize preserving aspect ratio then center-crop to 16:9
+                # Scale to fill 1280x670 then center crop - Telegram optimal format
                 from PIL import ImageOps
-                img = ImageOps.fit(img, (IMAGE_W, IMAGE_H), Image.LANCZOS, centering=(0.5, 0.5))
+                img = ImageOps.fit(img, (IMAGE_W, IMAGE_H), Image.LANCZOS, centering=(0.5, 0.4))
                 buf = io.BytesIO()
                 img.save(buf, format="JPEG", quality=90)
                 buf.seek(0)
