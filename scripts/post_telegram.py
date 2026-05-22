@@ -83,11 +83,14 @@ def build_prompt(channel, rubric, post_text, img_desc):
 
 
 def generate_image(channel, rubric, post_text, img_desc):
-    client = genai.Client(api_key=GEMINI_KEY)
     prompt = build_prompt(channel, rubric, post_text, img_desc)
     print(f"    Imagen: {prompt[:80]}...")
     try:
-        response = client.models.generate_images(
+        client_v1 = genai.Client(
+            api_key=GEMINI_KEY,
+            http_options={"api_version": "v1"}
+        )
+        response = client_v1.models.generate_images(
             model=IMAGE_MODEL,
             prompt=prompt,
             config=types.GenerateImagesConfig(
