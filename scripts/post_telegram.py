@@ -173,16 +173,7 @@ def main():
     print(f"\n{'='*50}")
     print(f"  eSIM Telegram bot | {DAY.upper()} | {TODAY}")
     print(f"{'='*50}\n")
-    # List available image models
-    try:
-        import urllib.request as _ur, json as _js
-        _url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_KEY}"
-        with _ur.urlopen(_url) as _resp:
-            _models = _js.loads(_resp.read())
-            _img = [m['name'] for m in _models.get('models',[]) if 'image' in m['name'].lower() or 'imagen' in m['name'].lower()]
-            print(f"  Available image models: {_img}")
-    except Exception as _e:
-        print(f"  Model list error: {_e}")
+
     sheets = get_sheets_client()
     sent, errors = [], []
 
