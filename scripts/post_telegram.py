@@ -105,7 +105,10 @@ def generate_image(channel, rubric, post_text, img_desc):
             model="gemini-2.5-flash-image",
             contents=prompt,
             config=types.GenerateContentConfig(
-                response_modalities=["IMAGE", "TEXT"]
+                response_modalities=["IMAGE", "TEXT"],
+                image_generation_config=types.ImageGenerationConfig(
+                    image_size="1280x720"
+                )
             )
         )
         for part in response.candidates[0].content.parts:
