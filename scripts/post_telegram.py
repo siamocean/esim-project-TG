@@ -88,6 +88,25 @@ def build_esimdata_prompt(rubric, post_text, img_desc):
         f"16:9 wide landscape format, 1280x720px. No text overlays, no QR codes, no watermarks."
     ).strip()
 
+def build_esimway_prompt(rubric, post_text, img_desc):
+    """Special prompt for @esimway with brand colors: navy #0A284C, blue #2267DF, light blue #6394E7, white #F8FBFF."""
+    lines = [l.strip() for l in post_text.split("\n")
+             if l.strip() and not l.startswith("http") and len(l.strip()) > 10]
+    context = lines[0][:80] if lines else ""
+    return (
+        f"Lifestyle travel photography, vibrant and energetic. Real people traveling: "
+        f"happy traveler at airport, tourist exploring landmarks, friends on adventure, "
+        f"person with phone in beautiful location, couple discovering new city. "
+        f"Authentic human moments, genuine emotions, no robots, no AI figures, no floating devices, no tech UI.\n\n"
+        f"Color palette: deep navy #0A284C as dominant background, bright blue #2267DF as main accent, "
+        f"light blue #6394E7 for highlights, soft white #F8FBFF for bright areas. "
+        f"Gradient overlay from #2267DF to #0A284C (left to right, subtle 25% opacity). "
+        f"Clean, modern, premium travel brand aesthetic.\n\n"
+        f"Post context: {context}\n"
+        f"Visual direction: {img_desc}\n\n"
+        f"16:9 wide landscape format, 1280x720px. No text overlays, no QR codes, no watermarks."
+    ).strip()
+
 def build_prompt(channel, rubric, post_text, img_desc):
     meta     = CHANNEL_META.get(channel, {"country": "global", "city": "travel", "operator": "various"})
     operator = meta["operator"]
@@ -119,6 +138,8 @@ def generate_image(channel, rubric, post_text, img_desc):
     client = genai.Client(api_key=GEMINI_KEY)
     if channel == "@esimsdata_official":
         prompt = build_esimdata_prompt(rubric, post_text, img_desc)
+    elif channel == "@esimway":
+        prompt = build_esimway_prompt(rubric, post_text, img_desc)
     else:
         prompt = build_prompt(channel, rubric, post_text, img_desc)
     print(f"    Gemini image: {prompt[:80]}...")
