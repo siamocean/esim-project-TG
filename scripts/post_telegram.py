@@ -37,8 +37,8 @@ CHANNEL_IDS = {
     "@esimsdata_official": "-1003710694261",
     "@esimway":            "-1002249121447",
     "@esimanonymous":      "-1002315349916",
-    # "@esim_5g_internet":    "-1003624254307",  # TODO: pending content & style
-    # "@esim_united_kingdom": "-1003704526342",  # TODO: pending content & style
+    "@esim_5g_internet":    "-1003624254307",
+    "@esim_united_kingdom": "-1003704526342",
 }
 
 CHANNEL_META = {
@@ -109,6 +109,45 @@ def build_esimway_prompt(rubric, post_text, img_desc):
         f"16:9 wide landscape format, 1280x720px. No text overlays, no QR codes, no watermarks."
     ).strip()
 
+def build_esim5g_prompt(rubric, post_text, img_desc):
+    """@esim_5g_internet - same theme as esimway but with 5G brand colors."""
+    lines = [l.strip() for l in post_text.split("\n")
+             if l.strip() and not l.startswith("http") and len(l.strip()) > 10]
+    context = lines[0][:80] if lines else ""
+    return (
+        f"Lifestyle photography, vibrant and dynamic. Real people in motion: "
+        f"business traveler at airport lounge, digital nomad working on laptop in cafe, "
+        f"couple exploring city streets, backpacker with phone in scenic location, "
+        f"professional checking phone with city skyline behind. "
+        f"High energy, modern, connected lifestyle. No robots, no AI figures, no floating UI.\n\n"
+        f"Color palette: steel blue #396396 as dominant tone, "
+        f"vibrant red #f93f51 as accent highlight, soft white #f8fbff for bright areas. "
+        f"Gradient overlay left to right from #f93f51 to #243b63 (subtle 25% opacity). "
+        f"Clean, premium, high-speed internet brand aesthetic.\n\n"
+        f"Post context: {context}\n"
+        f"Visual direction: {img_desc}\n\n"
+        f"Horizontal landscape 1.91:1, 1280x670px. Fill frame edge to edge. No text, no QR, no watermarks."
+    ).strip()
+
+def build_esimuk_prompt(rubric, post_text, img_desc):
+    """@esim_united_kingdom - same theme as esimrussian but for UK."""
+    lines = [l.strip() for l in post_text.split("\n")
+             if l.strip() and not l.startswith("http") and len(l.strip()) > 10]
+    context = lines[0][:80] if lines else ""
+    return (
+        f"Lifestyle travel photography set in United Kingdom atmosphere: "
+        f"business traveler at London landmarks, digital nomad in British cafe, "
+        f"tourist exploring UK countryside, professional with phone near Big Ben or Tower Bridge, "
+        f"person with eSIM phone in British city. Authentic, warm, premium British travel feel. "
+        f"No robots, no AI figures, no floating UI.\n\n"
+        f"British travel and connectivity theme. Warm cinematic lighting, editorial photography style. "
+        f"Colors: deep navy and Union Jack inspired accents (red, white, blue). "
+        f"Premium, modern, professional aesthetic.\n\n"
+        f"Post context: {context}\n"
+        f"Visual direction: {img_desc}\n\n"
+        f"Horizontal landscape 1.91:1, 1280x670px. Fill frame edge to edge. No text, no QR, no watermarks."
+    ).strip()
+
 def build_prompt(channel, rubric, post_text, img_desc):
     meta     = CHANNEL_META.get(channel, {"country": "global", "city": "travel", "operator": "various"})
     operator = meta["operator"]
@@ -142,6 +181,10 @@ def generate_image(channel, rubric, post_text, img_desc):
         prompt = build_esimdata_prompt(rubric, post_text, img_desc)
     elif channel == "@esimway":
         prompt = build_esimway_prompt(rubric, post_text, img_desc)
+    elif channel == "@esim_5g_internet":
+        prompt = build_esim5g_prompt(rubric, post_text, img_desc)
+    elif channel == "@esim_united_kingdom":
+        prompt = build_esimuk_prompt(rubric, post_text, img_desc)
     else:
         prompt = build_prompt(channel, rubric, post_text, img_desc)
     print(f"    Gemini image: {prompt[:80]}...")
