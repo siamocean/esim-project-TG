@@ -110,42 +110,37 @@ def build_esimway_prompt(rubric, post_text, img_desc):
     ).strip()
 
 def build_esim5g_prompt(rubric, post_text, img_desc):
-    """@esim_5g_internet - same theme as esimway but with 5G brand colors."""
     lines = [l.strip() for l in post_text.split("\n")
              if l.strip() and not l.startswith("http") and len(l.strip()) > 10]
     context = lines[0][:80] if lines else ""
     return (
-        f"Lifestyle photography, vibrant and dynamic. Real people in motion: "
-        f"business traveler at airport lounge, digital nomad working on laptop in cafe, "
-        f"couple exploring city streets, backpacker with phone in scenic location, "
-        f"professional checking phone with city skyline behind. "
-        f"High energy, modern, connected lifestyle. No robots, no AI figures, no floating UI.\n\n"
-        f"Color palette: steel blue #396396 as dominant tone, "
-        f"vibrant red #f93f51 as accent highlight, soft white #f8fbff for bright areas. "
-        f"Gradient overlay left to right from #f93f51 to #243b63 (subtle 25% opacity). "
-        f"Clean, premium, high-speed internet brand aesthetic.\n\n"
-        f"Post context: {context}\n"
-        f"Visual direction: {img_desc}\n\n"
-        f"Horizontal landscape 1.91:1, 1280x670px. Fill frame edge to edge. No text, no QR, no watermarks."
+        f"Real lifestyle travel photography, vibrant and energetic. Authentic candid moment. "
+        f"Scene: {img_desc}. Theme: {context}. "
+        f"Show real people: business traveler at airport, digital nomad working at cafe, "
+        f"couple exploring city, backpacker with phone at landmark, person using smartphone outdoors. "
+        f"Color grading: steel blue and red accent tones, warm cinematic grade. "
+        f"Brand colors visible as subtle color grade: blue #396396 dominant, red accent #f93f51. "
+        f"NO robots. NO AI figures. NO abstract UI. NO floating tech elements. NO neon glows. "
+        f"Photorealistic DSLR quality. Natural lighting. Real environments. Real humans. "
+        f"Wide 1.91:1 horizontal, fills entire frame, no empty space, no borders."
     ).strip()
 
 def build_esimuk_prompt(rubric, post_text, img_desc):
-    """@esim_united_kingdom - same theme as esimrussian but for UK."""
     lines = [l.strip() for l in post_text.split("\n")
              if l.strip() and not l.startswith("http") and len(l.strip()) > 10]
     context = lines[0][:80] if lines else ""
     return (
-        f"Lifestyle travel photography set in United Kingdom atmosphere: "
-        f"business traveler at London landmarks, digital nomad in British cafe, "
-        f"tourist exploring UK countryside, professional with phone near Big Ben or Tower Bridge, "
-        f"person with eSIM phone in British city. Authentic, warm, premium British travel feel. "
-        f"No robots, no AI figures, no floating UI.\n\n"
-        f"British travel and connectivity theme. Warm cinematic lighting, editorial photography style. "
-        f"Colors: deep navy and Union Jack inspired accents (red, white, blue). "
-        f"Premium, modern, professional aesthetic.\n\n"
-        f"Post context: {context}\n"
-        f"Visual direction: {img_desc}\n\n"
-        f"Horizontal landscape 1.91:1, 1280x670px. Fill frame edge to edge. No text, no QR, no watermarks."
+        f"Real travel photography in United Kingdom. Authentic candid moment. "
+        f"Scene: {img_desc}. Theme: {context}. "
+        f"Show real people: tourist at London landmark, digital nomad in British cafe, "
+        f"traveler at Heathrow or Gatwick, hiker in Scottish Highlands, person on UK train. "
+        f"Locations: London streets, Tower Bridge, Big Ben, British countryside, Scottish Highlands, "
+        f"cozy English pub, UK train station, Brighton seafront. "
+        f"Mood: authentic British atmosphere, warm overcast light or golden hour. "
+        f"Color grading: warm tones, slightly desaturated cinematic British look. "
+        f"NO robots. NO AI figures. NO abstract shapes. NO floating UI. NO neon. "
+        f"Photorealistic DSLR quality. Real UK environments. Real diverse humans. "
+        f"Wide 1.91:1 horizontal, fills entire frame edge to edge, no empty space."
     ).strip()
 
 def build_prompt(channel, rubric, post_text, img_desc):
