@@ -149,31 +149,25 @@ def build_esimuk_prompt(rubric, post_text, img_desc):
     ).strip()
 
 def build_prompt(channel, rubric, post_text, img_desc):
-    meta     = CHANNEL_META.get(channel, {"country": "global", "city": "travel", "operator": "various"})
-    operator = meta["operator"]
-    mood     = "professional, travel tech, dark premium"
-    for key, val in RUBRIC_MOOD.items():
-        if key.lower() in rubric.lower():
-            mood = val
-            break
+    meta    = CHANNEL_META.get(channel, {"country": "global", "city": "travel", "operator": "various"})
+    country = meta.get("country", "global")
+    city    = meta.get("city", "travel destination")
     lines   = [l.strip() for l in post_text.split("\n")
                if l.strip() and not l.startswith("http") and len(l.strip()) > 10]
     context = lines[0][:80] if lines else ""
-    logo    = ""
-    if ("plan" in rubric.lower() or "voice" in rubric.lower()) and operator not in ("various", "anonymous"):
-        logo = f"The {operator} operator logo subtly visible on the smartphone screen."
     return (
-        f"Cinematic dark tech aesthetic. Deep navy and dark purple tones with subtle "
-        f"blue-purple gradient lighting. Premium, minimalist, editorial photography style. "
-        f"eSIM digital connectivity and travel theme.\n\n"
-        f"Country: {meta['country']}. City: {meta['city']}.\n"
-        f"Rubric mood: {mood}.\n"
-        f"Post context: {context}\n"
-        f"Visual: {img_desc}\n"
-        f"{logo}\n\n"
-        f"16:9 wide landscape format, 1280x720 pixels. No text overlays, no QR codes, no watermarks."
+        f"Real lifestyle travel photography. Authentic candid moment, professional DSLR quality. "
+        f"Specific scene: {img_desc}. Location: {city}, {country}. "
+        f"Theme: {context}. "
+        f"Style: photorealistic, warm cinematic lighting, natural colors, shallow depth of field. "
+        f"Show real humans - diverse travelers, business people or digital nomads - "
+        f"in real-world situations. Emotions: happy, confident, relaxed. "
+        f"Environment: real airport terminal, cafe, city street, hotel lobby, beach, train. "
+        f"NO robots. NO AI figures. NO abstract shapes. NO floating UI. NO tech diagrams. "
+        f"NO dark neon backgrounds. Wide horizontal scene fills entire frame edge to edge. "
+        f"Natural daylight or warm golden hour lighting. 35mm lens, shallow bokeh background. "
+        f"1280x670 pixels, no letterboxing, no pillarboxing, no empty areas."
     ).strip()
-
 
 def generate_image(channel, rubric, post_text, img_desc):
     client = genai.Client(api_key=GEMINI_KEY)
