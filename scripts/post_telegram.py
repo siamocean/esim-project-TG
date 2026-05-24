@@ -175,7 +175,7 @@ def generate_image(channel, rubric, post_text, img_desc):
                 img = Image.open(io.BytesIO(part.inline_data.data)).convert("RGB")
                 # Scale to fill 1280x670 then center crop - Telegram optimal format
                 from PIL import ImageOps
-                img = ImageOps.fit(img, (IMAGE_W, IMAGE_H), Image.LANCZOS, centering=(0.5, 0.4))
+                img = ImageOps.fit(img, (IMAGE_W, IMAGE_H), Image.LANCZOS, centering=(0.5, 0.3))
                 buf = io.BytesIO()
                 img.save(buf, format="JPEG", quality=90)
                 buf.seek(0)
