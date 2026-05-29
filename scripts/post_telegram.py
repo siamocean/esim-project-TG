@@ -124,7 +124,11 @@ def build_esim5g_prompt(rubric, post_text, img_desc):
         f"Photorealistic DSLR quality. Natural lighting. Real environments. Real humans. "
         f"Wide 1.91:1 horizontal, fills entire frame. "
         f"CRITICAL: No empty areas. All space filled with natural gradient, blurred background, "
-        f"ambient light or texture continuation. No sharp photo edges. No solid color blocks."
+        f"ambient light or texture continuation. No sharp photo edges. No solid color blocks. "
+        "NO photo grids or collages. NO 2x2, 3x3 or equal rectangular photo layouts. "
+        f"ONE main visual focus. Single unified composition. "
+        f"If multiple elements exist, blend them seamlessly into one scene - different sizes, organic shapes, no white dividers. "
+        f"The result must look like a premium travel or tech brand advertisement banner, not a photo collage."
     ).strip()
 
 def build_esimuk_prompt(rubric, post_text, img_desc):
@@ -144,7 +148,11 @@ def build_esimuk_prompt(rubric, post_text, img_desc):
         f"Photorealistic DSLR quality. Real UK environments. Real diverse humans. "
         f"Wide 1.91:1 horizontal, fills entire frame edge to edge. "
         f"CRITICAL: No empty areas allowed. All space filled with natural gradient transitions, "
-        f"blurred background, atmospheric haze or environmental continuation. No sharp edges."
+        f"blurred background, atmospheric haze or environmental continuation. No sharp edges. "
+        "NO photo grids or collages. NO 2x2, 3x3 or equal rectangular photo layouts. "
+        f"ONE main visual focus. Single unified composition. "
+        f"If multiple elements exist, blend them seamlessly into one scene - different sizes, organic shapes, no white dividers. "
+        f"The result must look like a premium travel or tech brand advertisement banner, not a photo collage."
     ).strip()
 
 def build_prompt(channel, rubric, post_text, img_desc):
@@ -171,7 +179,11 @@ def build_prompt(channel, rubric, post_text, img_desc):
         f"natural-looking extensions: smooth gradient transitions, blurred background continuation, "
         f"soft bokeh, ambient light, sky, environment texture, or atmospheric haze. "
         f"No sharp edges where the photo ends. No solid color blocks. No visible seams. "
-        f"Every pixel of the canvas must feel like part of the same scene."
+        f"Every pixel of the canvas must feel like part of the same scene. "
+        "NO photo grids or collages. NO 2x2, 3x3 or equal rectangular photo layouts. "
+        f"ONE main visual focus. Single unified composition. "
+        f"If multiple elements exist, blend them seamlessly into one scene - different sizes, organic shapes, no white dividers. "
+        f"The result must look like a premium travel or tech brand advertisement banner, not a photo collage."
     ).strip()
 
 def generate_image(channel, rubric, post_text, img_desc):
