@@ -191,15 +191,15 @@ def translate_to_russian(text):
     try:
         client = genai.Client(api_key=GEMINI_KEY)
         prompt = (
-            "Переведи следующий текст поста для Telegram-канала на русский язык. "
-            "Требования к переводу:\n"
-            "- Естественный разговорный русский, не канцелярский\n"
-            "- Сохрани все эмодзи на тех же местах\n"
-            "- Сохрани все ссылки без изменений\n"
-            "- Сохрани форматирование: переносы строк, списки, стрелки\n"
-            "- Маркетинговый тон: живой, уверенный, без канцелярита\n"
-            "- НЕ добавляй никаких пояснений, только переведённый текст\n\n"
-            f"Текст для перевода:\n{text}"
+            "ÐÐµÑÐµÐ²ÐµÐ´Ð¸ ÑÐ»ÐµÐ´ÑÑÑÐ¸Ð¹ ÑÐµÐºÑÑ Ð¿Ð¾ÑÑÐ° Ð´Ð»Ñ Telegram-ÐºÐ°Ð½Ð°Ð»Ð° Ð½Ð° ÑÑÑÑÐºÐ¸Ð¹ ÑÐ·ÑÐº. "
+            "Ð¢ÑÐµÐ±Ð¾Ð²Ð°Ð½Ð¸Ñ Ðº Ð¿ÐµÑÐµÐ²Ð¾Ð´Ñ:\n"
+            "- ÐÑÑÐµÑÑÐ²ÐµÐ½Ð½ÑÐ¹ ÑÐ°Ð·Ð³Ð¾Ð²Ð¾ÑÐ½ÑÐ¹ ÑÑÑÑÐºÐ¸Ð¹, Ð½Ðµ ÐºÐ°Ð½ÑÐµÐ»ÑÑÑÐºÐ¸Ð¹\n"
+            "- Ð¡Ð¾ÑÑÐ°Ð½Ð¸ Ð²ÑÐµ ÑÐ¼Ð¾Ð´Ð·Ð¸ Ð½Ð° ÑÐµÑ Ð¶Ðµ Ð¼ÐµÑÑÐ°Ñ\n"
+            "- Ð¡Ð¾ÑÑÐ°Ð½Ð¸ Ð²ÑÐµ ÑÑÑÐ»ÐºÐ¸ Ð±ÐµÐ· Ð¸Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ð¹\n"
+            "- Ð¡Ð¾ÑÑÐ°Ð½Ð¸ ÑÐ¾ÑÐ¼Ð°ÑÐ¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ: Ð¿ÐµÑÐµÐ½Ð¾ÑÑ ÑÑÑÐ¾Ðº, ÑÐ¿Ð¸ÑÐºÐ¸, ÑÑÑÐµÐ»ÐºÐ¸\n"
+            "- ÐÐ°ÑÐºÐµÑÐ¸Ð½Ð³Ð¾Ð²ÑÐ¹ ÑÐ¾Ð½: Ð¶Ð¸Ð²Ð¾Ð¹, ÑÐ²ÐµÑÐµÐ½Ð½ÑÐ¹, Ð±ÐµÐ· ÐºÐ°Ð½ÑÐµÐ»ÑÑÐ¸ÑÐ°\n"
+            "- ÐÐ Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐ¹ Ð½Ð¸ÐºÐ°ÐºÐ¸Ñ Ð¿Ð¾ÑÑÐ½ÐµÐ½Ð¸Ð¹, ÑÐ¾Ð»ÑÐºÐ¾ Ð¿ÐµÑÐµÐ²ÐµÐ´ÑÐ½Ð½ÑÐ¹ ÑÐµÐºÑÑ\n\n"
+            f"Ð¢ÐµÐºÑÑ Ð´Ð»Ñ Ð¿ÐµÑÐµÐ²Ð¾Ð´Ð°:\n{text}"
         )
         response = client.models.generate_content(
             model="gemini-2.5-flash",
@@ -332,7 +332,16 @@ def main():
         # Translate to Russian for @esimrussian channel
         if channel == "@esimrussian":
             post_text = translate_to_russian(post_text)
-        caption = f"{post_text}\n\n{link}" if link and link not in post_text else post_text
+        # Build caption
+        if channel == "@esimsdata_official":
+            footer = (
+                "\n\nInternet for every destination."
+                "\n[📱 Mini App](https://t.me/Esimsdata_bot?start=esimsdata_official) | "
+                "[🌐 Website](https://esimsdata.com/?utm_source=telegram&utm_medium=channel&utm_campaign=esimsdata_official)"
+            )
+            caption = post_text + footer
+        else:
+            caption = f"{post_text}\n\n{link}" if link and link not in post_text else post_text
         caption = caption[:1024]
         img_buf = generate_image(channel, rubric, post_text, img_desc)
         try:
