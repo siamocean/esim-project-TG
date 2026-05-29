@@ -186,6 +186,33 @@ def build_prompt(channel, rubric, post_text, img_desc):
         f"The result must look like a premium travel or tech brand advertisement banner, not a photo collage."
     ).strip()
 
+def translate_to_russian(text):
+    """Translate post text to natural Russian using Gemini."""
+    try:
+        client = genai.Client(api_key=GEMINI_KEY)
+        prompt = (
+            "Переведи следующий текст поста для Telegram-канала на русский язык. "
+            "Требования к переводу:\n"
+            "- Естественный разговорный русский, не канцелярский\n"
+            "- Сохрани все эмодзи на тех же местах\n"
+            "- Сохрани все ссылки без изменений\n"
+            "- Сохрани форматирование: переносы строк, списки, стрелки\n"
+            "- Маркетинговый тон: живой, уверенный, без канцелярита\n"
+            "- НЕ добавляй никаких пояснений, только переведённый текст\n\n"
+            f"Текст для перевода:\n{text}"
+        )
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(max_output_tokens=1500)
+        )
+        translated = response.text.strip()
+        print(f"    Translated to Russian ({len(translated)} chars)")
+        return translated
+    except Exception as e:
+        print(f"    Translation error: {e}, using original")
+        return text
+
 def generate_image(channel, rubric, post_text, img_desc):
     client = genai.Client(api_key=GEMINI_KEY)
     if channel == "@esimsdata_official":
@@ -302,6 +329,9 @@ def main():
         link      = str(row.get("link", "")).strip()
         img_desc  = str(row.get("img_desc", "travel landscape eSIM")).strip()
         print(f"\n  {channel} | {rubric}")
+        # Translate to Russian for @esimrussian channel
+        if channel == "@esimrussian":
+            post_text = translate_to_russian(post_text)
         caption = f"{post_text}\n\n{link}" if link and link not in post_text else post_text
         caption = caption[:1024]
         img_buf = generate_image(channel, rubric, post_text, img_desc)
