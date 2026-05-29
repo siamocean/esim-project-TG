@@ -122,7 +122,9 @@ def build_esim5g_prompt(rubric, post_text, img_desc):
         f"Brand colors visible as subtle color grade: blue #396396 dominant, red accent #f93f51. "
         f"NO robots. NO AI figures. NO abstract UI. NO floating tech elements. NO neon glows. "
         f"Photorealistic DSLR quality. Natural lighting. Real environments. Real humans. "
-        f"Wide 1.91:1 horizontal, fills entire frame, no empty space, no borders."
+        f"Wide 1.91:1 horizontal, fills entire frame. "
+        f"CRITICAL: No empty areas. All space filled with natural gradient, blurred background, "
+        f"ambient light or texture continuation. No sharp photo edges. No solid color blocks."
     ).strip()
 
 def build_esimuk_prompt(rubric, post_text, img_desc):
@@ -140,7 +142,9 @@ def build_esimuk_prompt(rubric, post_text, img_desc):
         f"Color grading: warm tones, slightly desaturated cinematic British look. "
         f"NO robots. NO AI figures. NO abstract shapes. NO floating UI. NO neon. "
         f"Photorealistic DSLR quality. Real UK environments. Real diverse humans. "
-        f"Wide 1.91:1 horizontal, fills entire frame edge to edge, no empty space."
+        f"Wide 1.91:1 horizontal, fills entire frame edge to edge. "
+        f"CRITICAL: No empty areas allowed. All space filled with natural gradient transitions, "
+        f"blurred background, atmospheric haze or environmental continuation. No sharp edges."
     ).strip()
 
 def build_prompt(channel, rubric, post_text, img_desc):
@@ -161,7 +165,13 @@ def build_prompt(channel, rubric, post_text, img_desc):
         f"NO robots. NO AI figures. NO abstract shapes. NO floating UI. NO tech diagrams. "
         f"NO dark neon backgrounds. Wide horizontal scene fills entire frame edge to edge. "
         f"Natural daylight or warm golden hour lighting. 35mm lens, shallow bokeh background. "
-        f"1280x670 pixels, no letterboxing, no pillarboxing, no empty areas."
+        f"1280x670 pixels, no letterboxing, no pillarboxing, no empty areas. "
+        f"CRITICAL: The image must fill the entire 1280x670 canvas. "
+        f"If the main subject does not cover the full frame, all empty areas must be filled with "
+        f"natural-looking extensions: smooth gradient transitions, blurred background continuation, "
+        f"soft bokeh, ambient light, sky, environment texture, or atmospheric haze. "
+        f"No sharp edges where the photo ends. No solid color blocks. No visible seams. "
+        f"Every pixel of the canvas must feel like part of the same scene."
     ).strip()
 
 def generate_image(channel, rubric, post_text, img_desc):
