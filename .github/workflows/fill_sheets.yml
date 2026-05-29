@@ -11,8 +11,8 @@ jobs:
           python-version: '3.11'
       - name: Install deps
         run: pip install gspread google-auth
-      - name: Fill sheets
+      - name: Add VPN posts to esimrussian
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
-        run: python scripts/fill_sheets.py
+        run: python scripts/add_vpn_posts.py
